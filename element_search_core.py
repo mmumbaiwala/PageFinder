@@ -24,7 +24,7 @@ class StaticTextElement:
 @define
 class MatchResult:
     """Stores the result of a fuzzy text search."""
-    search_text: str = field(validator=validators.instance_of(str))
+    matched_string: str = field(validator=validators.instance_of(str))
     errors: int = field(validator=validators.instance_of(int))
     error_rate: float = field(validator=validators.instance_of(float))
     match_case: bool = field(validator=validators.instance_of(bool))
@@ -75,7 +75,7 @@ def search_static_text_elements(elements: list[StaticTextElement],
             if debug_mode:
                 print(f"✓ Exact match found!")
             results.append(MatchResult(
-                search_text=element.search_text,
+                matched_string=pattern,
                 errors=0,
                 error_rate=0.0,
                 match_case=element.match_case,
@@ -176,7 +176,7 @@ def search_static_text_elements(elements: list[StaticTextElement],
                 print(f"  Final result: errors={best_errors}, error_rate={error_rate:.4f}, success={success}")
             
             results.append(MatchResult(
-                search_text=element.search_text,
+                matched_string=best_substring,
                 errors=best_errors,
                 error_rate=error_rate,
                 match_case=element.match_case,
@@ -186,7 +186,7 @@ def search_static_text_elements(elements: list[StaticTextElement],
             if debug_mode:
                 print(f"  No hypotheses found!")
             results.append(MatchResult(
-                search_text=element.search_text,
+                matched_string="",
                 errors=-1,
                 error_rate=1.0,
                 match_case=element.match_case,
@@ -225,11 +225,11 @@ if __name__ == "__main__":
     results = search_static_text_elements(elements, test_text, debug_mode=False)
     
     # Display results
-    for result in results:
+    for i, result in enumerate(results):
         if result.errors >= 0:
             error_rate_pct = result.error_rate * 100
-            print(f"Search: '{result.search_text}' -> Errors: {result.errors}, Error Rate: {error_rate_pct:.1f}%, Success: {result.success}")
+            print(f"Search: '{elements[i].search_text}' -> Matched: '{result.matched_string}', Errors: {result.errors}, Error Rate: {error_rate_pct:.1f}%, Success: {result.success}")
         else:
-            print(f"Search: '{result.search_text}' -> No match found, Success: {result.success}")
+            print(f"Search: '{elements[i].search_text}' -> No match found, Success: {result.success}")
     
     print("Core module test completed successfully!")

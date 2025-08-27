@@ -4,7 +4,7 @@ Production test script for fuzzy text search functionality.
 This script imports the core functionality and provides clean, production-ready output.
 """
 
-from fuzzy_search_core import search_static_text_elements, StaticTextElement, MatchResult
+from element_search_core import search_static_text_elements, StaticTextElement, MatchResult
 
 def main():
     """Main test function with clean output"""
@@ -42,9 +42,13 @@ def main():
     print("="*50)
     
     # Display clean results
-    for match in matches:
+    for i, match in enumerate(matches):
         status = "✓ SUCCESS" if match.success else "✗ FAILED"
-        print(f"{status} | '{match.search_text}' -> Errors: {match.errors}, Rate: {match.error_rate:.4f}")
+        search_text = elements[i].search_text
+        if match.errors >= 0:
+            print(f"{status} | '{search_text}' -> Matched: '{match.matched_string}', Errors: {match.errors}, Rate: {match.error_rate:.4f}")
+        else:
+            print(f"{status} | '{search_text}' -> No match found")
     
     # Summary
     successful = sum(1 for match in matches if match.success)
