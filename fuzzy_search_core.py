@@ -12,9 +12,14 @@ from typing import Optional, Tuple
 class StaticTextElement:
     """Defines a search pattern with error tolerance settings."""
     search_text: str = field(validator=validators.instance_of(str))
-    max_errors: int = field(validator=validators.instance_of(int))
-    max_error_rate: float = field(validator=validators.instance_of(float))
-    match_case: bool = field(validator=validators.instance_of(bool))
+    match_case: bool = field(default=False, validator=validators.instance_of(bool))
+    max_errors: Optional[int] = field(default=None, validator=validators.optional(validators.instance_of(int)))
+    max_error_rate: Optional[float] = field(default=None, validator=validators.optional(validators.instance_of(float)))
+    
+    def __attrs_post_init__(self):
+        """Validate that at least one error condition is provided."""
+        if self.max_errors is None and self.max_error_rate is None:
+            raise ValueError("At least one of max_errors or max_error_rate must be provided")
 
 @define
 class MatchResult:
@@ -153,10 +158,19 @@ def search_static_text_elements(elements: list[StaticTextElement],
             actual_length = len(best_substring) if best_substring else pattern_len
             error_rate = best_errors / max(1, actual_length)
             
-            success = (
-                best_errors <= element.max_errors and
-                error_rate <= element.max_error_rate
-            )
+            # Check success based on provided conditions
+            # If both max_errors and max_error_rate are provided, both must be satisfied
+            # If only one is provided, only that condition is checked
+            # If neither is provided, validation error would have occurred during object creation
+            success = True
+            
+            # Check max_errors if it's provided (not None)
+            if hasattr(element, 'max_errors') and element.max_errors is not None:
+                success = success and (best_errors <= element.max_errors)
+            
+            # Check max_error_rate if it's provided (not None)
+            if hasattr(element, 'max_error_rate') and element.max_error_rate is not None:
+                success = success and (error_rate <= element.max_error_rate)
             
             if debug_mode:
                 print(f"  Final result: errors={best_errors}, error_rate={error_rate:.4f}, success={success}")
@@ -184,16 +198,25 @@ def search_static_text_elements(elements: list[StaticTextElement],
 
 if __name__ == "__main__":
     """Basic test when run directly"""
-    # Simple test elements
+    # Simple test elements - demonstrating different configurations
     elements = [
+        # Both conditions provided (original behavior)
         StaticTextElement(search_text="test",
                           max_errors=1,
                           max_error_rate=0.3,
                           match_case=False),
+        # Only max_errors provided
+        StaticTextElement(search_text="example",
+                          max_errors=2,
+                          match_case=True),
+        # Only max_error_rate provided
+        StaticTextElement(search_text="sample",
+                          max_error_rate=0.4,
+                          match_case=False),
     ]
     
     # Simple test text
-    test_text = "This is a test message with some text to search in."
+    test_text = "This is a tesst message with some text to search in. Example"
     
     print("Basic test of fuzzy search core module")
     print("="*40)
@@ -203,6 +226,10 @@ if __name__ == "__main__":
     
     # Display results
     for result in results:
-        print(f"Search: '{result.search_text}' -> Errors: {result.errors}, Success: {result.success}")
+        if result.errors >= 0:
+            error_rate_pct = result.error_rate * 100
+            print(f"Search: '{result.search_text}' -> Errors: {result.errors}, Error Rate: {error_rate_pct:.1f}%, Success: {result.success}")
+        else:
+            print(f"Search: '{result.search_text}' -> No match found, Success: {result.success}")
     
     print("Core module test completed successfully!")
