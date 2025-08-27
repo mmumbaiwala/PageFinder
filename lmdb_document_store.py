@@ -26,7 +26,7 @@ class LmdbDocumentStore:
         data = {
             "file_path": file_path,
             "file_name": file_name,
-            "metadata": metadata
+            **metadata  # <-- Unpack the metadata directly
         }
         with self.env.begin(write=True, db=self.docs_db) as txn:
             txn.put(doc_id.encode(), pickle.dumps(data))
@@ -42,7 +42,20 @@ class LmdbDocumentStore:
     def get_document_metadata(self, doc_id: str) -> Optional[dict]:
         with self.env.begin(db=self.docs_db) as txn:
             raw = txn.get(doc_id.encode())
-            return pickle.loads(raw) if raw else None
+            if raw:
+                data = pickle.loads(raw)
+                # Handle both old and new metadata formats
+                if "metadata" in data:
+                    # Old format: {"file_path": "...", "file_name": "...", "metadata": {...}}
+                    return {
+                        "file_path": data.get("file_path", ""),
+                        "file_name": data.get("file_name", ""),
+                        **data.get("metadata", {})
+                    }
+                else:
+                    # New format: direct unpacking
+                    return data
+            return None
 
     def get_page_digital_text(self, doc_id: str, page: int) -> Optional[str]:
         key = self._encode_key(doc_id, page)
