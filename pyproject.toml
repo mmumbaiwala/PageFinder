@@ -8,6 +8,7 @@ dependencies = [
     "attrs>=25.3.0",
     "fitz>=0.0.1.dev2",
     "ipykernel>=6.30.1",
+    "lmdb>=1.7.3",
     "pymupdf>=1.26.4",
     "pytesseract>=0.3.13",
     "rapidfuzz>=3.13.0",
