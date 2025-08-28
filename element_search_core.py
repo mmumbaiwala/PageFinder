@@ -154,26 +154,29 @@ def search_static_text_elements(elements: list[StaticTextElement],
                 print(f"\n  Best hypothesis selected:")
                 print(f"    Score: {best_score:.1f}, Errors: {best_errors}, Substring: '{best_substring}', Position: {best_position}")
             
-            # Calculate error rate based on actual substring length
-            actual_length = len(best_substring) if best_substring else pattern_len
-            error_rate = best_errors / max(1, actual_length)
+            # Calculate error rate based on pattern length (what we're searching for)
+            # This is more meaningful than using actual substring length
+            error_rate = best_errors / max(1, pattern_len)
             
             # Check success based on provided conditions
             # If both max_errors and max_error_rate are provided, both must be satisfied
             # If only one is provided, only that condition is checked
-            # If neither is provided, validation error would have occurred during object creation
             success = True
             
-            # Check max_errors if it's provided (not None)
-            if hasattr(element, 'max_errors') and element.max_errors is not None:
+            # Check max_errors if it's provided
+            if element.max_errors is not None:
                 success = success and (best_errors <= element.max_errors)
             
-            # Check max_error_rate if it's provided (not None)
-            if hasattr(element, 'max_error_rate') and element.max_error_rate is not None:
+            # Check max_error_rate if it's provided
+            if element.max_error_rate is not None:
                 success = success and (error_rate <= element.max_error_rate)
             
             if debug_mode:
-                print(f"  Final result: errors={best_errors}, error_rate={error_rate:.4f}, success={success}")
+                print(f"  Final result: errors={best_errors}, pattern_length={pattern_len}, error_rate={error_rate:.4f} ({error_rate*100:.1f}%), success={success}")
+                if element.max_errors is not None:
+                    print(f"    Max errors check: {best_errors} <= {element.max_errors} = {best_errors <= element.max_errors}")
+                if element.max_error_rate is not None:
+                    print(f"    Max error rate check: {error_rate:.4f} <= {element.max_error_rate:.4f} = {error_rate <= element.max_error_rate}")
             
             results.append(MatchResult(
                 matched_string=best_substring,
@@ -201,12 +204,12 @@ if __name__ == "__main__":
     # Simple test elements - demonstrating different configurations
     elements = [
         # Both conditions provided (original behavior)
-        StaticTextElement(search_text="test",
+        StaticTextElement(search_text="COM",
                           max_errors=1,
                           max_error_rate=0.3,
                           match_case=False),
         # Only max_errors provided
-        StaticTextElement(search_text="example",
+        StaticTextElement(search_text="Relationship Name",
                           max_errors=2,
                           match_case=True),
         # Only max_error_rate provided
