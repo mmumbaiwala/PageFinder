@@ -1,10 +1,11 @@
 import os
 import fitz
 from pathlib import Path
-from text_preprocessing import extract_text_from_pdf_images_ocr, digital_pdf_get_text
+from text_preprocessing import extract_text_from_pdf_images_ocr, extract_text_from_pdf_digital
 from lmdb_document_store import LmdbDocumentStore
 import argparse
 import hashlib
+from tqdm import tqdm
 
 
 def get_file_hash(file_path: str) -> str:
@@ -37,52 +38,57 @@ def process_pdf_folder(folder_path: str, db_path: str = "document_store.lmdb", t
     
     print(f"Found {len(pdf_files)} PDF files to process")
     
-    for pdf_file in pdf_files:
-        try:
-            print(f"\nProcessing: {pdf_file.name}")
-            
-            # Generate document ID from filename
-            doc_id = pdf_file.stem
-            
-            # Open PDF document
-            doc = fitz.open(str(pdf_file))
-            page_count = len(doc)
-            
-            print(f"  Pages: {page_count}")
-            
-            # Extract digital text from all pages
-            print("  Extracting digital text...")
-            digital_texts = digital_pdf_get_text(str(pdf_file))
-            
-            # Extract OCR text from images on all pages
-            print("  Extracting OCR text from images...")
-            ocr_texts = extract_text_from_pdf_images_ocr(doc, tesseract_path)
-            
-            # Save document metadata
-            metadata = {
-                "page_count": page_count,
-                "file_size": pdf_file.stat().st_size,
-                "processing_date": str(Path().cwd()),
-                "file_hash": get_file_hash(str(pdf_file)),  # Add file hash for compatibility
-                "last_modified": pdf_file.stat().st_mtime
-            }
-            db.save_document_metadata(doc_id, str(pdf_file), pdf_file.name, metadata)
-            
-            # Save page texts
-            for page_num in range(page_count):
-                digital_text = digital_texts[page_num] if page_num < len(digital_texts) else ""
-                ocr_text = ocr_texts[page_num] if page_num < len(ocr_texts) else ""
+    # Create progress bar
+    with tqdm(total=len(pdf_files), desc="Processing PDFs", unit="file") as pbar:
+        for pdf_file in pdf_files:
+            try:
+                # Update progress bar description to show current file
+                pbar.set_description(f"Processing: {pdf_file.name}")
                 
-                db.save_page_texts(doc_id, page_num + 1, digital_text, ocr_text)
-            
-            print(f"  ✓ Saved {page_count} pages to database")
-            
-            # Close document
-            doc.close()
-            
-        except Exception as e:
-            print(f"  ✗ Error processing {pdf_file.name}: {e}")
-            continue
+                # Generate document ID from filename
+                doc_id = pdf_file.stem
+                
+                # Open PDF document
+                doc = fitz.open(str(pdf_file))
+                page_count = len(doc)
+                
+                print(f"  Pages: {page_count}")
+                
+                # Extract digital text from all pages
+                print("  Extracting digital text...")
+                digital_texts = extract_text_from_pdf_digital(str(pdf_file))
+                
+                # Extract OCR text from images on all pages
+                print("  Extracting OCR text from images...")
+                ocr_texts = extract_text_from_pdf_images_ocr(doc, tesseract_path)
+                
+                # Save document metadata
+                metadata = {
+                    "page_count": page_count,
+                    "file_size": pdf_file.stat().st_size,
+                    "processing_date": str(Path().cwd()),
+                    "file_hash": get_file_hash(str(pdf_file)),  # Add file hash for compatibility
+                    "last_modified": pdf_file.stat().st_mtime
+                }
+                db.save_document_metadata(doc_id, str(pdf_file), pdf_file.name, metadata)
+                
+                # Save page texts
+                for page_num in range(page_count):
+                    digital_text = digital_texts[page_num] if page_num < len(digital_texts) else ""
+                    ocr_text = ocr_texts[page_num] if page_num < len(ocr_texts) else ""
+                    
+                    db.save_page_texts(doc_id, page_num + 1, digital_text, ocr_text)
+                
+                print(f"  ✓ Saved {page_count} pages to database")
+                
+                # Close document
+                doc.close()
+                
+            except Exception as e:
+                print(f"  ✗ Error processing {pdf_file.name}: {e}")
+            finally:
+                # Always update progress bar, even if there was an error
+                pbar.update(1)
     
     # Close database
     db.close()

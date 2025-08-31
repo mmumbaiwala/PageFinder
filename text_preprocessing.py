@@ -43,7 +43,7 @@ def extract_text_from_image_ocr(image_path_or_bytes,
     except Exception as e:
         raise Exception(f"OCR failed: {str(e)}")
 
-def extract_text_from_pdf_images_ocr(doc,
+def extract_text_from_pdf_images_ocr(pdf_path,
                                      tesseract_path=None):
     """
     Extract text from all images in a PDF using OCR.
@@ -55,6 +55,7 @@ def extract_text_from_pdf_images_ocr(doc,
     Returns:
         list: List of extracted text from images, sorted by page order
     """
+    doc = fitz.open(pdf_path)
     results = ["" for i in range(len(doc))]  # Initialize with empty strings for all pages
     
     for page_num in range(len(doc)):
@@ -146,7 +147,7 @@ def merge_imageText_with_pdfText(image_text:list[str],
     return merged_text
 
 
-def digital_pdf_get_text(pdf_path:str)->list[str]:
+def extract_text_from_pdf_digital(pdf_path:str)->list[str]:
     """
     """
     doc = fitz.open(pdf_path)
@@ -154,6 +155,15 @@ def digital_pdf_get_text(pdf_path:str)->list[str]:
     for page in doc:
         text.append(page.get_text())
     return text
+
+def digital_pdf_get_text(doc:fitz.Document)->list[str]:
+    """
+    """
+    text = []
+    for page in doc:
+        text.append(page.get_text())
+    return text
+    
 
 def create_page_finder_result_template(search_conditions):
     """
