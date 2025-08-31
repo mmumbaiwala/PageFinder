@@ -1,0 +1,119 @@
+{
+  "benchmark_date": "2025-08-31T14:39:54.828589",
+  "system_info": {
+    "cpu_count": 5,
+    "memory_total_gb": 15.744903564453125,
+    "platform": "nt",
+    "python_version": "3.13.5"
+  },
+  "test_folder": "SampleData",
+  "pdf_count": 21,
+  "benchmarks": [
+    {
+      "implementation": "old_sequential",
+      "execution_time_seconds": 165.22585105895996,
+      "files_processed": 21,
+      "throughput_files_per_second": 0.12709875522145903,
+      "memory_before_mb": 89.33203125,
+      "memory_after_mb": 361.7734375,
+      "memory_peak_mb": 361.7734375,
+      "memory_increase_mb": 272.44140625,
+      "cpu_usage_start": 8.4,
+      "cpu_usage_end": 33.4,
+      "database_size_mb": 10240.0078125,
+      "success": true
+    },
+    {
+      "implementation": "old_incremental",
+      "execution_time_seconds": 2.3471527099609375,
+      "files_processed": 21,
+      "throughput_files_per_second": 8.947010525084025,
+      "memory_before_mb": 361.78125,
+      "memory_after_mb": 361.78515625,
+      "memory_peak_mb": 361.78515625,
+      "memory_increase_mb": 0.00390625,
+      "cpu_usage_start": 52.1,
+      "cpu_usage_end": 54.0,
+      "database_size_mb": 10240.0078125,
+      "success": true
+    },
+    {
+      "implementation": "optimized_1workers",
+      "config": {
+        "max_workers": 1,
+        "batch_size": 10,
+        "memory_limit_mb": 1024,
+        "enable_ocr": true,
+        "enable_digital": true
+      },
+      "execution_time_seconds": 151.7448914051056,
+      "files_processed": 21,
+      "throughput_files_per_second": 0.13839016131315665,
+      "memory_before_mb": 361.78515625,
+      "memory_after_mb": 362.8515625,
+      "memory_peak_mb": 362.8515625,
+      "memory_increase_mb": 1.06640625,
+      "cpu_usage_start": 96.5,
+      "cpu_usage_end": 9.3,
+      "database_size_mb": 10240.0078125,
+      "success": true
+    },
+    {
+      "implementation": "optimized_2workers",
+      "config": {
+        "max_workers": 2,
+        "batch_size": 10,
+        "memory_limit_mb": 1024,
+        "enable_ocr": true,
+        "enable_digital": true
+      },
+      "execution_time_seconds": 1.1256163120269775,
+      "files_processed": 21,
+      "throughput_files_per_second": 18.6564460514825,
+      "memory_before_mb": 362.8515625,
+      "memory_after_mb": 362.8515625,
+      "memory_peak_mb": 362.8515625,
+      "memory_increase_mb": 0.0,
+      "cpu_usage_start": 14.8,
+      "cpu_usage_end": 16.9,
+      "database_size_mb": 10240.0078125,
+      "success": true
+    },
+    {
+      "implementation": "optimized_4workers",
+      "config": {
+        "max_workers": 4,
+        "batch_size": 10,
+        "memory_limit_mb": 1024,
+        "enable_ocr": true,
+        "enable_digital": true
+      },
+      "execution_time_seconds": 1.032137393951416,
+      "files_processed": 21,
+      "throughput_files_per_second": 20.346128454472503,
+      "memory_before_mb": 362.8515625,
+      "memory_after_mb": 362.8515625,
+      "memory_peak_mb": 362.8515625,
+      "memory_increase_mb": 0.0,
+      "cpu_usage_start": 10.0,
+      "cpu_usage_end": 20.2,
+      "database_size_mb": 10240.0078125,
+      "success": true
+    }
+  ],
+  "summary": {
+    "fastest_implementation": "optimized_4workers",
+    "fastest_time_seconds": 1.032137393951416,
+    "slowest_implementation": "old_sequential",
+    "slowest_time_seconds": 165.22585105895996,
+    "speedup_factor": 160.08125664976862,
+    "lowest_memory_implementation": "old_sequential",
+    "lowest_memory_mb": 361.7734375,
+    "highest_memory_implementation": "optimized_1workers",
+    "highest_memory_mb": 362.8515625,
+    "highest_throughput_implementation": "optimized_4workers",
+    "highest_throughput_files_per_second": 20.346128454472503,
+    "total_benchmarks": 5,
+    "successful_benchmarks": 5
+  }
+}

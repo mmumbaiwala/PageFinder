@@ -1,6 +1,6 @@
 import lmdb
 import pickle
-from typing import Optional
+from typing import Optional, List, Tuple
 
 
 class LmdbDocumentStore:
@@ -38,6 +38,22 @@ class LmdbDocumentStore:
                 txn.put(key, pickle.dumps(digital_text), db=self.digital_db)
             if ocr_text is not None:
                 txn.put(key, pickle.dumps(ocr_text), db=self.ocr_db)
+
+    def save_page_texts_batch(self, doc_id: str, page_texts: List[Tuple[Optional[str], Optional[str]]]):
+        """
+        Save multiple pages in a single transaction for better performance.
+        
+        Args:
+            doc_id: Document identifier
+            page_texts: List of tuples (digital_text, ocr_text) for each page
+        """
+        with self.env.begin(write=True) as txn:
+            for page_num, (digital_text, ocr_text) in enumerate(page_texts, 1):
+                key = self._encode_key(doc_id, page_num)
+                if digital_text is not None:
+                    txn.put(key, pickle.dumps(digital_text), db=self.digital_db)
+                if ocr_text is not None:
+                    txn.put(key, pickle.dumps(ocr_text), db=self.ocr_db)
 
     def get_document_metadata(self, doc_id: str) -> Optional[dict]:
         with self.env.begin(db=self.docs_db) as txn:
