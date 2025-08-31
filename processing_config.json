@@ -1,0 +1,35 @@
+{
+  "performance": {
+    "max_workers": 6,
+    "batch_size": 10,
+    "memory_limit_mb": 1024,
+    "ocr_batch_size": 5,
+    "page_chunk_size": 10
+  },
+  "features": {
+    "enable_ocr": true,
+    "enable_digital": true,
+    "skip_existing": true,
+    "enable_caching": true,
+    "enable_checkpointing": true
+  },
+  "ocr": {
+    "tesseract_config": "--psm 4",
+    "timeout_seconds": 30,
+    "max_ocr_workers": 2
+  },
+  "memory": {
+    "force_cleanup_interval": 2,
+    "gc_collection_level": 2
+  },
+  "logging": {
+    "log_level": "INFO",
+    "show_progress": true,
+    "show_memory_usage": true
+  },
+  "paths": {
+    "hash_cache_file": ".file_hashes.json",
+    "checkpoint_file": ".processing_checkpoint.json",
+    "log_file": "processing.log"
+  }
+}
