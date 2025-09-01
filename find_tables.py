@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 from typing import List, Dict
 import builtins
+from tqdm import tqdm
 
 # Safe print for Windows consoles without UTF-8 code page
 def _safe_print(*args, **kwargs):
@@ -87,6 +88,9 @@ def search_single_document(detector: TableDetector, doc_name: str, verbose: bool
     """Search a single document for tables"""
     print(f"\n🔍 Searching document: {doc_name}")
     
+    if verbose:
+        print(f"  📄 Processing document with confidence threshold: {min_confidence}")
+    
     results = detector.search_document_for_tables(doc_name, min_confidence)
     
     if not results:
@@ -117,11 +121,18 @@ def search_all_documents(detector: TableDetector, verbose: bool = False, min_con
     document_names = detector.db.list_all_docs()
     print(f"📚 Found {len(document_names)} documents to search")
     
-    # Search each document
+    # Search each document with progress bar
     all_results = []
-    for doc_name in document_names:
-        doc_results = detector.search_document_for_tables(doc_name, min_confidence)
-        all_results.extend(doc_results)
+    if verbose:
+        # Verbose mode: show progress for each document
+        for doc_name in tqdm(document_names, desc="Processing documents", unit="doc"):
+            doc_results = detector.search_document_for_tables(doc_name, min_confidence)
+            all_results.extend(doc_results)
+    else:
+        # Silent mode: just show progress bar
+        for doc_name in tqdm(document_names, desc="Processing documents", unit="doc", leave=False):
+            doc_results = detector.search_document_for_tables(doc_name, min_confidence)
+            all_results.extend(doc_results)
     
     if not all_results:
         print("❌ No tables found in any documents")
