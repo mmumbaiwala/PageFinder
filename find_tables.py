@@ -171,6 +171,7 @@ def export_results(results: List, output_file: str):
             export_data.append({
                 'table_name': result.table_name,
                 'document_name': result.document_name,
+                'file_path': result.file_path,
                 'found': result.found,
                 'pages_found': result.pages_found,
                 'confidence_score': result.confidence_score,

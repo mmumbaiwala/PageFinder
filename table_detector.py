@@ -84,6 +84,7 @@ class TableSearchResult:
     table_name: str = attrs.field(validator=attrs.validators.instance_of(str))
     document_name: str = attrs.field(validator=attrs.validators.instance_of(str))
     found: bool = attrs.field(validator=attrs.validators.instance_of(bool))
+    file_path: str = attrs.field(default="", validator=attrs.validators.instance_of(str))
     pages_found: List[int] = attrs.field(default=attrs.Factory(list), validator=attrs.validators.instance_of(list))
     element_results: List[SearchResult] = attrs.field(default=attrs.Factory(list), validator=attrs.validators.instance_of(list))
     confidence_score: float = attrs.field(default=0.0, validator=attrs.validators.and_(attrs.validators.ge(0.0), attrs.validators.le(1.0)))
@@ -234,6 +235,22 @@ class TableDetector:
             print(f"Error accessing document {document_name}: {e}")
             return results
         
+        # Get document metadata for file path
+        metadata = self.db.get_document_metadata(document_name)
+        file_path = metadata.get('file_path', '') if metadata else ''
+
+        
+        # Convert to absolute path and normalize backslashes
+        if file_path:
+            try:
+                # Convert to absolute path
+                abs_path = Path(file_path).resolve()
+                # Convert to string with single backslashes
+                file_path = str(abs_path).replace('\\', '/')
+            except Exception:
+                # If path resolution fails, just normalize the backslashes
+                file_path = file_path.replace('\\', '/')
+        
         for table_def in self.tables:
             # Search each page individually for this table
             page_results = []
@@ -255,6 +272,7 @@ class TableDetector:
                     page_result = TableSearchResult(
                         table_name=table_def.name,
                         document_name=document_name,
+                        file_path=file_path,
                         found=True,
                         pages_found=[page_num],  # Only this page
                         element_results=page_element_results,
