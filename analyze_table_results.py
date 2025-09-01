@@ -36,7 +36,9 @@ def analyze_table_occurrences(results: List[Dict]) -> Dict:
         'file_paths': defaultdict(set)
     }
     
-    # Group results by table and document
+    # First, consolidate results by table and document
+    consolidated = defaultdict(lambda: defaultdict(list))
+    
     for result in results:
         table_name = result['table_name']
         doc_name = result['document_name']
@@ -44,25 +46,50 @@ def analyze_table_occurrences(results: List[Dict]) -> Dict:
         confidence = result['confidence_score']
         file_path = result.get('file_path', '')
         
-        # Add to various groupings
-        analysis['tables_by_document'][doc_name].append({
-            'table': table_name,
+        # Group by document and table
+        consolidated[doc_name][table_name].append({
             'pages': pages,
             'confidence': confidence,
             'file_path': file_path
         })
-        
-        analysis['documents_by_table'][table_name].append({
-            'document': doc_name,
-            'pages': pages,
-            'confidence': confidence,
-            'file_path': file_path
-        })
-        
-        analysis['confidence_stats'][table_name].append(confidence)
-        
-        if file_path:
-            analysis['file_paths'][table_name].add(file_path)
+    
+    # Now process consolidated results
+    for doc_name, tables in consolidated.items():
+        for table_name, occurrences in tables.items():
+            # Combine all pages and calculate average confidence
+            all_pages = []
+            all_confidences = []
+            file_path = ''
+            
+            for occ in occurrences:
+                all_pages.extend(occ['pages'])
+                all_confidences.append(occ['confidence'])
+                if not file_path and occ['file_path']:
+                    file_path = occ['file_path']
+            
+            # Remove duplicates and sort pages
+            unique_pages = sorted(list(set(all_pages)))
+            avg_confidence = sum(all_confidences) / len(all_confidences) if all_confidences else 0.0
+            
+            # Add to various groupings
+            analysis['tables_by_document'][doc_name].append({
+                'table': table_name,
+                'pages': unique_pages,
+                'confidence': avg_confidence,
+                'file_path': file_path
+            })
+            
+            analysis['documents_by_table'][table_name].append({
+                'document': doc_name,
+                'pages': unique_pages,
+                'confidence': avg_confidence,
+                'file_path': file_path
+            })
+            
+            analysis['confidence_stats'][table_name].append(avg_confidence)
+            
+            if file_path:
+                analysis['file_paths'][table_name].add(file_path)
     
     # Calculate summary statistics
     total_results = len(results)

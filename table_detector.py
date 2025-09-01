@@ -225,7 +225,7 @@ class TableDetector:
         return found, score, details
     
     def search_document_for_tables(self, document_name: str, min_confidence: float = 0.0) -> List[TableSearchResult]:
-        """Search a single document for all defined tables - checking each page individually"""
+        """Search a single document for all defined tables - aggregating pages per table"""
         results = []
         
         # Get document pages from database
@@ -252,8 +252,11 @@ class TableDetector:
                 file_path = file_path.replace('\\', '/')
         
         for table_def in self.tables:
-            # Search each page individually for this table
-            page_results = []
+            # Track all pages where this table is found
+            found_pages = []
+            all_element_results = []
+            page_confidences = []
+            page_details_list = []
             
             for page_num, page_text in pages.items():
                 # Search this specific page for all text elements
@@ -268,21 +271,31 @@ class TableDetector:
                 
                 # Only include results that meet the confidence threshold
                 if page_found and page_confidence >= min_confidence:
-                    # This page contains the table - create a result for this page
-                    page_result = TableSearchResult(
-                        table_name=table_def.name,
-                        document_name=document_name,
-                        file_path=file_path,
-                        found=True,
-                        pages_found=[page_num],  # Only this page
-                        element_results=page_element_results,
-                        confidence_score=page_confidence,
-                        match_details=page_details
-                    )
-                    page_results.append(page_result)
+                    found_pages.append(page_num)
+                    all_element_results.extend(page_element_results)
+                    page_confidences.append(page_confidence)
+                    page_details_list.append(f"Page {page_num}: {page_details}")
             
-            # Add all page results to main results
-            results.extend(page_results)
+            # If table was found on any pages, create a single result
+            if found_pages:
+                # Calculate overall confidence as average of page confidences
+                overall_confidence = sum(page_confidences) / len(page_confidences) if page_confidences else 0.0
+                
+                # Combine match details from all pages
+                combined_details = "; ".join(page_details_list)
+                
+                # Create single result for this table in this document
+                table_result = TableSearchResult(
+                    table_name=table_def.name,
+                    document_name=document_name,
+                    file_path=file_path,
+                    found=True,
+                    pages_found=sorted(found_pages),  # All pages where table was found
+                    element_results=all_element_results,
+                    confidence_score=overall_confidence,
+                    match_details=combined_details
+                )
+                results.append(table_result)
         
         return results
     
