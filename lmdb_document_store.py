@@ -1,6 +1,6 @@
 import lmdb
 import pickle
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
 
 class LmdbDocumentStore:
@@ -84,6 +84,63 @@ class LmdbDocumentStore:
         with self.env.begin(db=self.ocr_db) as txn:
             raw = txn.get(key)
             return pickle.loads(raw) if raw else None
+
+    def get_document_pages(self, doc_id: str, prefer: str = "digital", combine: bool = True) -> Dict[int, str]:
+        """
+        Return a mapping of page_number -> text for a document.
+
+        Args:
+            doc_id: Document identifier
+            prefer: Which source to prefer when both exist: "digital" or "ocr"
+            combine: If True, concatenate digital and OCR text when both exist
+
+        Returns:
+            Dict of {page_num: text}
+        """
+        pages: Dict[int, str] = {}
+
+        # Gather digital texts
+        with self.env.begin(db=self.digital_db) as txn:
+            cursor = txn.cursor()
+            prefix = f"{doc_id}_page_".encode()
+            if cursor.first():
+                for k, v in cursor:
+                    if not k.startswith(prefix):
+                        continue
+                    try:
+                        page_str = k.decode().rsplit("_", 1)[-1]
+                        page_num = int(page_str)
+                    except Exception:
+                        continue
+                    pages[page_num] = pickle.loads(v) if v else ""
+
+        # Merge OCR texts
+        with self.env.begin(db=self.ocr_db) as txn:
+            cursor = txn.cursor()
+            prefix = f"{doc_id}_page_".encode()
+            if cursor.first():
+                for k, v in cursor:
+                    if not k.startswith(prefix):
+                        continue
+                    try:
+                        page_str = k.decode().rsplit("_", 1)[-1]
+                        page_num = int(page_str)
+                    except Exception:
+                        continue
+                    ocr_text = pickle.loads(v) if v else ""
+                    if page_num in pages:
+                        if combine:
+                            # Combine texts if different
+                            digital_text = pages[page_num] or ""
+                            if ocr_text and ocr_text not in digital_text:
+                                pages[page_num] = (digital_text + "\n" + ocr_text).strip()
+                        else:
+                            if prefer.lower() == "ocr" and ocr_text:
+                                pages[page_num] = ocr_text
+                    else:
+                        pages[page_num] = ocr_text
+
+        return pages
 
     def list_all_docs(self) -> list[str]:
         with self.env.begin(db=self.docs_db) as txn:

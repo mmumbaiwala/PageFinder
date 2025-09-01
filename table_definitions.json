@@ -1,0 +1,185 @@
+{
+  "description": "Table definitions for bank document analysis",
+  "tables": [
+    {
+      "name": "CoverPage COMS",
+      "description": "CoverPage Table",
+      "match_strategy": "min_count",
+      "min_elements": 3,
+      "text_elements": [
+        {
+          "search_text": "Relationship Name",
+          "max_errors": 0,
+          "max_error_rate": 0.2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Main CoverPage identifier"
+        },
+        {
+          "search_text": "Borrower Name",
+          "max_errors": 2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Borrower Name"
+        },
+        {
+          "search_text": "Tax ID",
+          "max_errors": 2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Tax ID"
+        },
+        {
+          "search_text": "Address",
+          "max_errors": 2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Address"
+        }
+      ]
+    },
+    {
+      "name": "Income Statement",
+      "description": "Consolidated income statement table",
+      "match_strategy": "min_count",
+      "min_elements": 3,
+      "text_elements": [
+        {
+          "search_text": "consolidated income statements",
+          "max_errors": 3,
+          "max_error_rate": 0.3,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Main income statement identifier"
+        },
+        {
+          "search_text": "Revenue",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Revenue line"
+        },
+        {
+          "search_text": "Net income",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Net income line"
+        },
+        {
+          "search_text": "Operating expenses",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Operating expenses section"
+        }
+      ]
+    },
+    {
+      "name": "Cash Flow Statement",
+      "description": "Consolidated cash flow statement table",
+      "match_strategy": "min_count",
+      "min_elements": 3,
+      "text_elements": [
+        {
+          "search_text": "consolidated cash flows",
+          "max_errors": 3,
+          "max_error_rate": 0.3,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Main cash flow identifier"
+        },
+        {
+          "search_text": "Operating activities",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Operating activities section"
+        },
+        {
+          "search_text": "Investing activities",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Investing activities section"
+        },
+        {
+          "search_text": "Financing activities",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Financing activities section"
+        }
+      ]
+    },
+    {
+      "name": "Risk Management",
+      "description": "Risk management and capital adequacy table",
+      "match_strategy": "min_count",
+      "min_elements": 2,
+      "text_elements": [
+        {
+          "search_text": "risk management",
+          "max_errors": 2,
+          "max_error_rate": 0.2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Risk management section"
+        },
+        {
+          "search_text": "capital adequacy",
+          "max_errors": 2,
+          "max_error_rate": 0.2,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Capital adequacy section"
+        },
+        {
+          "search_text": "Basel",
+          "max_errors": 1,
+          "match_case": false,
+          "weight": 0.8,
+          "description": "Basel framework reference"
+        },
+        {
+          "search_text": "Tier 1 capital",
+          "max_errors": 2,
+          "match_case": true,
+          "weight": 1.0,
+          "description": "Tier 1 capital ratio"
+        }
+      ]
+    },
+    {
+      "name": "Notes to Financial Statements",
+      "description": "Notes and disclosures table",
+      "match_strategy": "min_count",
+      "min_elements": 2,
+      "text_elements": [
+        {
+          "search_text": "notes to financial statements",
+          "max_errors": 3,
+          "max_error_rate": 0.3,
+          "match_case": false,
+          "weight": 1.0,
+          "description": "Notes section identifier"
+        },
+        {
+          "search_text": "Note",
+          "max_errors": 1,
+          "match_case": true,
+          "weight": 0.8,
+          "description": "Individual note references"
+        },
+        {
+          "search_text": "disclosure",
+          "max_errors": 2,
+          "max_error_rate": 0.2,
+          "match_case": false,
+          "weight": 0.9,
+          "description": "Disclosure information"
+        }
+      ]
+    }
+  ]
+}
